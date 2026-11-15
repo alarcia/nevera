@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"errors"
 	"html/template"
 	"io/fs"
@@ -29,6 +31,21 @@ var (
 	compTpl   = parse("templates/compartment.html")
 )
 
+// assetVer changes whenever an embedded static file does. It goes in the asset
+// URLs so a CDN or browser can never serve a stale stylesheet with fresh HTML.
+var assetVer = func() string {
+	h := sha256.New()
+	fs.WalkDir(assets, "static", func(p string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() {
+			b, _ := assets.ReadFile(p)
+			h.Write([]byte(p))
+			h.Write(b)
+		}
+		return nil
+	})
+	return hex.EncodeToString(h.Sum(nil))[:10]
+}()
+
 func parse(page string) *template.Template {
 	return template.Must(template.ParseFS(assets, "templates/base.html", page))
 }
@@ -36,13 +53,14 @@ func parse(page string) *template.Template {
 type page struct {
 	T      any
 	Title  string
+	V      string // asset version, see assetVer
 	Body   string // body class; "fit" locks the page to the viewport height
 	Fridge *fridgeView
 	Comp   *compView
 }
 
 func render(e *core.RequestEvent, t *template.Template, p page) error {
-	p.T = ui
+	p.T, p.V = ui, assetVer
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, "base", p); err != nil {
 		return err
