@@ -1,0 +1,7 @@
+.DS_Store
+.env
+pb_data/
+/nevera
+# Design mockup: local reference only, never published.
+/Main.dc.html
+/Frigo*

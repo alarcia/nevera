@@ -1,0 +1,14 @@
+services:
+  web:
+    image: ghcr.io/alarcia/nevera:latest
+    container_name: nevera
+    restart: unless-stopped
+    user: "${DEPLOY_UID}:${DEPLOY_GID}"
+    ports:
+      # Loopback only: cloudflared on the host is the single way in, and there is
+      # no login of our own behind Cloudflare Access. 0.0.0.0 would expose it to the LAN.
+      - "127.0.0.1:${HOST_PORT:-8090}:8090"
+    environment:
+      TZ: Europe/Andorra
+    volumes:
+      - ${HOST_DATA_PATH}:/pb_data
