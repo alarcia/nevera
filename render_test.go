@@ -37,7 +37,7 @@ func TestPages(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Seeded layout: three shelves, then the two drawers sharing one row.
-	if len(f.Body) != 4 || len(f.Body[3].Comps) != 2 || len(f.Door) != 3 {
+	if len(f.Body) != 4 || len(f.Body[3].Comps) != 2 || len(f.Door) != 4 || !f.Door[2].Gap {
 		t.Fatalf("unexpected layout: %d body rows, %d door rows", len(f.Body), len(f.Door))
 	}
 

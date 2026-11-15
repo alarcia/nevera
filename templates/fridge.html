@@ -1,7 +1,7 @@
 {{define "zone"}}<a class="zone {{.Kind}}" href="/c/{{.ID}}" aria-label="{{.Name}}, {{.CountLabel}}">
-<span class="zhead"><span class="zname">{{.Name}}</span><span class="zcount">{{.Count}}{{if .HasFill}} · {{.Fill}} %{{end}}</span></span>
+<span class="zhead"><span class="zname">{{.Name}}</span><span class="zcount"><span class="cl">{{.CountLabel}}</span><span class="cn">{{.Count}}</span></span></span>
 {{if .Recommended}}<span class="zrec">{{.Recommended}}</span>{{end}}
-{{if .HasFill}}<span class="fill" aria-hidden="true"><i{{if ge .Fill 100}} class="full"{{end}} style="width:{{.FillBar}}%"></i></span>{{end}}
+{{if .HasFill}}<span class="fillrow" aria-hidden="true"><span class="fill"><i{{if ge .Fill 100}} class="full"{{end}} style="width:{{.FillBar}}%"></i></span><span class="fp">{{.Fill}} %</span></span>{{end}}
 <span class="zitems" aria-hidden="true">{{range .Slots}}<span class="slot{{if .Back}} back{{end}}">{{template "sprite" .}}</span>{{end}}{{if .More}}<span class="more">+{{.More}}</span>{{end}}</span>
 </a>{{end}}
 
@@ -15,7 +15,7 @@
   </section>
   <section class="cabinet door-col" aria-label="{{.T.Door}}">
     <div class="door-title px">{{.T.Door}}</div>
-    {{range .Fridge.Door}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>
+    {{range .Fridge.Door}}{{if .Gap}}<div style="flex:{{.Height}} 1 0"></div>{{else}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>{{end}}
     {{end}}
   </section>
 </div>

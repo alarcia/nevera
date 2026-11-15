@@ -50,6 +50,7 @@ type compView struct {
 
 type rowView struct {
 	Height int
+	Gap    bool // empty space (cm) that keeps door and body to the same scale
 	Comps  []compView
 }
 
@@ -218,6 +219,25 @@ func groupRows(comps []compView) []rowView {
 	return rows
 }
 
+func totalHeight(rows []rowView) (t int) {
+	for _, r := range rows {
+		t += r.Height
+	}
+	return
+}
+
+// withGap puts the spare height of a shorter column before its last row, so
+// small door shelves hang from the top and the bottle shelf stands at the
+// bottom, both drawn to the same scale as the body.
+func withGap(rows []rowView, bodyTotal int) []rowView {
+	gap := bodyTotal - totalHeight(rows)
+	if len(rows) < 2 || gap <= 0 {
+		return rows
+	}
+	last := len(rows) - 1
+	return append(rows[:last:last], rowView{Gap: true, Height: gap}, rows[last])
+}
+
 func fridgePage(app core.App, now time.Time) (*fridgeView, error) {
 	s, err := loadStock(app, now)
 	if err != nil {
@@ -231,7 +251,8 @@ func fridgePage(app core.App, now time.Time) (*fridgeView, error) {
 			body = append(body, s.compView(c, false))
 		}
 	}
-	return &fridgeView{Unit: s.unit.GetString("name"), Body: groupRows(body), Door: groupRows(door)}, nil
+	bodyRows, doorRows := groupRows(body), groupRows(door)
+	return &fridgeView{Unit: s.unit.GetString("name"), Body: bodyRows, Door: withGap(doorRows, totalHeight(bodyRows))}, nil
 }
 
 func compartmentPage(app core.App, id string, now time.Time) (*compView, error) {

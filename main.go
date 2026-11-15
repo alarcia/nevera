@@ -36,6 +36,7 @@ func parse(page string) *template.Template {
 type page struct {
 	T      any
 	Title  string
+	Body   string // body class; "fit" locks the page to the viewport height
 	Fridge *fridgeView
 	Comp   *compView
 }
@@ -82,7 +83,7 @@ func main() {
 			} else if err != nil {
 				return err
 			}
-			return render(e, fridgeTpl, page{Title: ui.App, Fridge: v})
+			return render(e, fridgeTpl, page{Title: ui.App, Body: "fit", Fridge: v})
 		})
 
 		se.Router.GET("/c/{id}", func(e *core.RequestEvent) error {
