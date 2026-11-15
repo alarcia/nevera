@@ -12,8 +12,10 @@ var ui = struct {
 	Unopened, NoDate, Fill, FillOver, More                      string
 	Urgent, Soon, Watch                                         string
 	FridgeLabel, DetailLabel, RemainingLabel, NoRecommendations string
-	Door                                                        string
+	Door, ShowDoor, HideDoor                                    string
 }{
+	ShowDoor:          "Mostrar puerta",
+	HideDoor:          "Ocultar puerta",
 	Door:              "PUERTA",
 	App:               "nevera",
 	Hint:              "Pulsa una balda o cajón para ver todo lo que hay",

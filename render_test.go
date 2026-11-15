@@ -46,7 +46,7 @@ func TestPages(t *testing.T) {
 		t.Fatal(err)
 	}
 	html := buf.String()
-	for _, want := range []string{`href="/c/`, `style="--h:`, `class="it k-`, "Balda alta", "PUERTA"} {
+	for _, want := range []string{`href="/c/`, `style="--h:`, `class="it k-`, "Balda alta", "PUERTA", "Mostrar puerta", `id="door-toggle"`} {
 		if !strings.Contains(html, want) {
 			t.Errorf("fridge page lacks %q", want)
 		}

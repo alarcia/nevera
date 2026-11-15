@@ -1,13 +1,17 @@
 {{define "zone"}}<a class="zone {{.Kind}}" href="/c/{{.ID}}" aria-label="{{.Name}}, {{.CountLabel}}">
 <span class="zhead"><span class="zname">{{.Name}}</span><span class="zcount"><span class="cl">{{.CountLabel}}</span><span class="cn">{{.Count}}</span></span></span>
 {{if .Recommended}}<span class="zrec">{{.Recommended}}</span>{{end}}
-{{if .HasFill}}<span class="fillrow" aria-hidden="true"><span class="fill"><i{{if ge .Fill 100}} class="full"{{end}} style="width:{{.FillBar}}%"></i></span><span class="fp">{{.Fill}} %</span></span>{{end}}
 <span class="zitems" aria-hidden="true">{{range .Slots}}<span class="slot{{if .Back}} back{{end}}">{{template "sprite" .}}</span>{{end}}{{if .More}}<span class="more">+{{.More}}</span>{{end}}</span>
 </a>{{end}}
 
 {{define "content"}}
 <main class="fridge-page">
-<div class="fridge-head"><h2 class="px">{{.Fridge.Unit}}</h2><span>{{.T.Hint}}</span></div>
+<input type="checkbox" id="door-toggle" class="sr">
+<div class="fridge-head">
+  <h2 class="px">{{.Fridge.Unit}}</h2>
+  <span class="hint">{{.T.Hint}}</span>
+  <label for="door-toggle" class="btn"><span class="off">{{.T.ShowDoor}}</span><span class="on">{{.T.HideDoor}}</span></label>
+</div>
 <div class="fridge">
   <section class="cabinet" aria-label="{{.T.FridgeLabel}}">
     {{range .Fridge.Body}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>

@@ -19,9 +19,17 @@ body.fit .top{flex:none;width:100%}
 .fridge-page{width:100%;max-width:900px;margin:0 auto;padding:12px;flex:1;min-height:0;display:flex;flex-direction:column}
 .fridge-head{flex:none;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px;margin-bottom:8px}
 .fridge-head h2{font-size:20px}
-.fridge-head span{color:#b4b9d6}
-.fridge{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,3fr);grid-template-rows:minmax(0,1fr);gap:8px}
+.fridge-head .hint{color:#b4b9d6;display:none}
+.fridge{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:8px}
 .cabinet{min-height:0;display:flex;flex-direction:column;gap:6px;padding:8px;background:#c3cedb;border:4px solid #6f8094;border-radius:14px}
+.door-col{display:none}
+/* The door is hidden until asked for (checkbox, no JS). */
+#door-toggle:checked ~ .fridge{grid-template-columns:minmax(0,5fr) minmax(0,3fr)}
+#door-toggle:checked ~ .fridge .door-col{display:flex}
+.sr{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+#door-toggle:focus-visible ~ .fridge-head .btn{outline:3px solid #fff;outline-offset:2px}
+.btn .on,#door-toggle:checked ~ .fridge-head .btn .off{display:none}
+#door-toggle:checked ~ .fridge-head .btn .on{display:inline}
 .door-title{flex:none;font-size:13px;font-weight:700;color:#1b2340}
 /* Row height is proportional to its configured cm, so both columns share one scale. */
 .row{flex:var(--h) 1 0;min-height:0;display:flex;gap:6px}
@@ -37,13 +45,8 @@ body.fit .top{flex:none;width:100%}
 .zname{font:700 14px 'Pixelify Sans','Courier New',monospace}
 .zcount{font-size:11px;font-weight:600;color:#3a4563;white-space:nowrap}
 .zcount .cl{display:none}
-.fillrow{display:flex;align-items:center;gap:6px;margin-top:4px}
-.fp{font-size:11px;font-weight:600;color:#3a4563}
 .zrec{font-size:11px;color:#3a4563;margin-top:1px}
 .door .zrec{display:none}
-.fill{flex:1;display:block;height:5px;background:#b9c9d8}
-.fill i{display:block;height:100%;background:#2f7fd1}
-.fill i.full{background:#d94b3d}
 /* Items take only the space left under the text and are cropped, never drawn over it. */
 .zitems{flex:1 1 0;min-height:0;overflow:hidden;display:flex;align-items:flex-end;padding:0 4px 6px 10px}
 .slot{position:relative;z-index:1;display:block;margin-right:-7px}
@@ -83,8 +86,9 @@ progress.bar::-webkit-progress-value{background:#6fe3ff}
 progress.bar::-moz-progress-bar{background:#6fe3ff}
 
 @media (min-width:640px){
+  .fridge-head .hint{display:inline;margin-left:auto}
   .zname{font-size:16px}
-  .zcount,.zrec,.fp{font-size:12px}
+  .zcount,.zrec{font-size:12px}
   .zcount .cl{display:inline}
   .zcount .cn{display:none}
   .cabinet{padding:12px}
