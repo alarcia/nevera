@@ -1,0 +1,19 @@
+{{define "base"}}<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14162b">
+<title>{{.Title}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/items.css">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top"><a class="logo px" href="/">{{.T.App}}</a></header>
+{{template "content" .}}
+</body>
+</html>
+{{end}}
+
+{{define "sprite"}}<span class="it k-{{.Shape}} c-{{.Skin}}"><i class="f f1"></i><i class="f f2"></i><i class="f f3"></i><i class="f f4"></i><i class="f f5"></i><span class="cap"><i class="f f1"></i><i class="f f2"></i><i class="f f3"></i><i class="f f4"></i><i class="f f5"></i></span></span>{{end}}

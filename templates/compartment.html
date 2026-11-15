@@ -1,0 +1,33 @@
+{{define "content"}}
+{{with .Comp}}
+<main class="detail" aria-label="{{$.T.DetailLabel}}">
+  <div><a class="btn" href="/">{{$.T.Back}}</a></div>
+  <div>
+    <h2 class="px">{{.Name}}</h2>
+    <div class="sub">{{if .Recommended}}{{$.T.RecommendedFor}}: {{.Recommended}} · {{end}}{{.CountLabel}}{{if .HasFill}} · {{$.T.Fill}} {{.Fill}} %{{end}}</div>
+  </div>
+  {{if .Why}}<p class="why">{{.Why}}</p>{{end}}
+  {{if not .Items}}<p class="empty">{{$.T.Empty}}</p>{{end}}
+  <div class="grid">
+    {{range .Items}}
+    <details class="card">
+      <summary>
+        <div class="stage" aria-hidden="true"><span class="big">{{template "sprite" .}}</span></div>
+        <h3>{{.Name}}</h3>
+        <div class="brand">{{.Brand}}</div>
+        <span class="chip {{.LevelClass}}">{{if .LevelText}}{{.LevelText}} · {{end}}{{.Chip}}</span>
+      </summary>
+      <dl>
+        <dt>{{$.T.Type}}</dt><dd>{{.Type}}</dd>
+        <dt>{{$.T.Expiry}}</dt><dd>{{.ExpLong}}</dd>
+        <dt>{{$.T.State}}</dt><dd>{{.OpenLabel}}</dd>
+        {{if .Quantity}}<dt>{{$.T.Quantity}}</dt><dd>{{.Quantity}}</dd>{{end}}
+        {{if .HasPct}}<dt>{{$.T.Remaining}}</dt><dd>{{.Pct}} %<progress class="bar" value="{{.Pct}}" max="100" aria-label="{{$.T.RemainingLabel}}"></progress></dd>{{end}}
+        {{if .Misplaced}}<dt>{{$.T.BetterIn}}</dt><dd class="hint">{{.Best}}</dd>{{end}}
+      </dl>
+    </details>
+    {{end}}
+  </div>
+</main>
+{{end}}
+{{end}}

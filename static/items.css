@@ -1,0 +1,80 @@
+/* 3D items: low-poly cuboids with dither, ported from the design mockup.
+   .it = item, k-* = shape, c-* = skin. The spin steps like a pre-rendered sprite. */
+/* ---------- item PSX: cuboide low-poly con textura dither ---------- */
+.it{--w:22px;--h:30px;--d:18px;--cw:8px;--ch:5px;--cd:8px;--a:#ccc;--b:#ccc;--c:#888;--t:var(--a);
+  position:relative;display:block;flex:none;width:var(--w);height:var(--h);transform-style:preserve-3d;transform:rotateX(-14deg) rotateY(-28deg)}
+.it .f{position:absolute;display:block;left:0;top:0;width:var(--w);height:var(--h);backface-visibility:hidden;background-color:var(--a);
+  background-image:repeating-conic-gradient(rgba(0,0,0,.13) 0 25%,transparent 0 50%),linear-gradient(var(--a) 0 26%,var(--b) 26% 66%,var(--a) 66%);background-size:4px 4px,100% 100%}
+.it .f1{transform:translateZ(calc(var(--d)/2))}
+.it .f2{transform:rotateY(180deg) translateZ(calc(var(--d)/2));filter:brightness(.7)}
+.it .f3{width:var(--d);left:calc((var(--w) - var(--d))/2);transform:rotateY(90deg) translateZ(calc(var(--w)/2));filter:brightness(.82)}
+.it .f4{width:var(--d);left:calc((var(--w) - var(--d))/2);transform:rotateY(-90deg) translateZ(calc(var(--w)/2));filter:brightness(.6)}
+.it .f5{height:var(--d);top:calc(var(--d)/-2);transform:rotateX(90deg);background-color:var(--t);
+  background-image:repeating-conic-gradient(rgba(255,255,255,.16) 0 25%,transparent 0 50%);background-size:4px 4px;filter:brightness(1.1)}
+.it .cap{position:absolute;display:block;left:calc((var(--w) - var(--cw))/2);top:calc(var(--ch) * -1);width:var(--cw);height:var(--ch);transform-style:preserve-3d}
+.it .cap .f{width:var(--cw);height:var(--ch);background-color:var(--c);background-image:repeating-conic-gradient(rgba(0,0,0,.13) 0 25%,transparent 0 50%);background-size:4px 4px}
+.it .cap .f1{transform:translateZ(calc(var(--cd)/2))}
+.it .cap .f2{transform:rotateY(180deg) translateZ(calc(var(--cd)/2))}
+.it .cap .f3{width:var(--cd);left:calc((var(--cw) - var(--cd))/2);transform:rotateY(90deg) translateZ(calc(var(--cw)/2))}
+.it .cap .f4{width:var(--cd);left:calc((var(--cw) - var(--cd))/2);transform:rotateY(-90deg) translateZ(calc(var(--cw)/2))}
+.it .cap .f5{height:var(--cd);top:calc(var(--cd)/-2);transform:rotateX(90deg)}
+@keyframes spin{from{transform:rotateX(-14deg) rotateY(-28deg)}to{transform:rotateX(-14deg) rotateY(332deg)}}
+/* Touch has no hover: a tapped (open) card spins too. */
+.card[open] .it,.card:focus-within .it,.it.spin{animation:spin 2.6s steps(36) infinite}
+@media (hover:hover){.card:hover .it{animation:spin 2.6s steps(36) infinite}}
+@media (prefers-reduced-motion:reduce){.card .it,.it.spin{animation:none!important}}
+
+/* formas */
+.k-brick{--w:22px;--h:42px;--d:16px;--cw:7px;--ch:4px;--cd:7px}
+.k-bottle{--w:16px;--h:34px;--d:16px;--cw:7px;--ch:10px;--cd:7px}
+.k-bottlel{--w:19px;--h:46px;--d:19px;--cw:8px;--ch:12px;--cd:8px}
+.k-jar{--w:22px;--h:24px;--d:22px;--cw:20px;--ch:5px;--cd:20px}
+.k-squeeze{--w:17px;--h:32px;--d:13px;--cw:8px;--ch:7px;--cd:8px}
+.k-tupper{--w:40px;--h:16px;--d:28px;--cw:42px;--ch:4px;--cd:30px}
+.k-tray{--w:40px;--h:10px;--d:28px}
+.k-block{--w:28px;--h:16px;--d:20px}
+.k-can{--w:15px;--h:24px;--d:15px}
+.k-carton{--w:44px;--h:13px;--d:22px}
+.k-cup{--w:15px;--h:17px;--d:15px;--cw:15px;--ch:2px;--cd:15px}
+.k-pack{--w:32px;--h:28px;--d:5px}
+.k-leaf{--w:28px;--h:24px;--d:26px}
+.k-round{--w:20px;--h:18px;--d:20px;--cw:5px;--ch:3px;--cd:5px}
+.k-long{--w:11px;--h:34px;--d:11px;--cw:9px;--ch:7px;--cd:9px}
+.k-melon{--w:44px;--h:36px;--d:40px}
+.k-tray .cap,.k-block .cap,.k-can .cap,.k-carton .cap,.k-pack .cap,.k-leaf .cap,.k-melon .cap{display:none}
+
+/* pieles */
+.c-milk{--a:#f4f6fb;--b:#3d6fd6;--c:#3d6fd6}
+.c-cream{--a:#f4f6fb;--b:#d94b3d;--c:#d94b3d}
+.c-ketchup{--a:#c8281e;--b:#f3efe6;--c:#f3efe6}
+.c-mayo{--a:#f1e7b8;--b:#2f66c4;--c:#2f66c4}
+.c-mustard{--a:#e0b21c;--b:#7a4b12;--c:#7a4b12}
+.c-bbq{--a:#5a2a1a;--b:#e0a11e;--c:#1e1e24}
+.c-jam{--a:#8e1f45;--b:#f6e9d0;--c:#d9b24a}
+.c-pickle{--a:#6f8f2e;--b:#f0ead2;--c:#2f2f38}
+.c-pesto{--a:#3f7a34;--b:#efe6c6;--c:#1e1e24}
+.c-water{--a:#9fd4f2;--b:#2a59b8;--c:#2a59b8}
+.c-oj{--a:#f39a1e;--b:#2f8f3f;--c:#2f8f3f}
+.c-cola{--a:#3a2218;--b:#c8281e;--c:#c8281e}
+.c-beer{--a:#c99a2e;--b:#1f5a3a;--t:#c9ccd4}
+.c-tup1{--a:#a8672e;--b:#a8672e;--c:#2f7fd1}
+.c-tup2{--a:#e3c66a;--b:#e3c66a;--c:#d94b3d}
+.c-tup3{--a:#b8452e;--b:#b8452e;--c:#3a9a6a}
+.c-chicken{--a:#f2f2f2;--b:#f2f2f2;--t:#f0b9a6}
+.c-beef{--a:#1f1f26;--b:#1f1f26;--t:#b0302f}
+.c-salmon{--a:#f2f2f2;--b:#f2f2f2;--t:#f58a5c}
+.c-hake{--a:#2c5fb0;--b:#2c5fb0;--t:#e9edf2}
+.c-lasagna{--a:#c8281e;--b:#f3e2b0;--t:#c8281e}
+.c-cheese{--a:#f0c23c;--b:#c8281e}
+.c-butter{--a:#f4dc7a;--b:#2a59b8}
+.c-egg{--a:#b9a58a;--b:#9a866c;--t:#cdbba2}
+.c-yog{--a:#ffffff;--b:#e56aa0;--c:#e56aa0}
+.c-yog2{--a:#ffffff;--b:#3d6fd6;--c:#dfe6f2}
+.c-ham{--a:#e8a0a8;--b:#f4f1e8}
+.c-lettuce{--a:#6fbf4a;--b:#58a83a;--t:#8fd45e}
+.c-tomato{--a:#d8352a;--b:#d8352a;--c:#2f8f3f}
+.c-apple{--a:#7fc241;--b:#7fc241;--c:#6a4424}
+.c-lemon{--a:#f3d42e;--b:#f3d42e;--c:#b7a11e}
+.c-carrot{--a:#f08a24;--b:#f08a24;--c:#3f9a3a}
+.c-zucchini{--a:#2f7a36;--b:#2f7a36;--c:#9a8a4a}
+.c-melon{--a:#2f7a36;--b:#1f5a2a}

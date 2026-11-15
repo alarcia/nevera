@@ -1,0 +1,23 @@
+{{define "zone"}}<a class="zone {{.Kind}}" href="/c/{{.ID}}" aria-label="{{.Name}}, {{.CountLabel}}">
+<span class="zhead"><span class="zname">{{.Name}}</span><span class="zcount">{{.Count}}{{if .HasFill}} · {{.Fill}} %{{end}}</span></span>
+{{if .Recommended}}<span class="zrec">{{.Recommended}}</span>{{end}}
+{{if .HasFill}}<span class="fill" aria-hidden="true"><i{{if ge .Fill 100}} class="full"{{end}} style="width:{{.FillBar}}%"></i></span>{{end}}
+<span class="zitems" aria-hidden="true">{{range .Slots}}<span class="slot{{if .Back}} back{{end}}">{{template "sprite" .}}</span>{{end}}{{if .More}}<span class="more">+{{.More}}</span>{{end}}</span>
+</a>{{end}}
+
+{{define "content"}}
+<main class="fridge-page">
+<div class="fridge-head"><h2 class="px">{{.Fridge.Unit}}</h2><span>{{.T.Hint}}</span></div>
+<div class="fridge">
+  <section class="cabinet" aria-label="{{.T.FridgeLabel}}">
+    {{range .Fridge.Body}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>
+    {{end}}
+  </section>
+  <section class="cabinet door-col" aria-label="{{.T.Door}}">
+    <div class="door-title px">{{.T.Door}}</div>
+    {{range .Fridge.Door}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>
+    {{end}}
+  </section>
+</div>
+</main>
+{{end}}

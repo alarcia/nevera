@@ -7,6 +7,7 @@ Self-hosted, mobile-first tracker for what is in the household fridge: where eac
 ```sh
 go run . serve            # app on http://127.0.0.1:8090, dashboard on /_/
 go test ./...
+go run . devseed          # local only: fills an empty database with invented products
 ```
 
 The first run prints a link to create the dashboard superuser. Schema edits made in the dashboard while running with `go run` are written to `migrations/` as Go files; commit them.
