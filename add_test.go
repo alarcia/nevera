@@ -55,6 +55,10 @@ func TestCreateItem(t *testing.T) {
 	if comp == "" {
 		t.Fatal("no suggestion for dairy")
 	}
+	// Days: dairy keeps a week; leftovers have no suggested date at all (-1).
+	if left := a.Types[0]; dairy.Life != 7 || left.Label != "Sobras" || left.Life != -1 {
+		t.Errorf("suggested days: dairy %d, %s %d", dairy.Life, left.Label, left.Life)
+	}
 
 	// A new product.
 	got, err := createItem(app, url.Values{
@@ -140,6 +144,10 @@ func TestCreateItem(t *testing.T) {
 	}
 	if shape, skin, size := drawnAs(pan, typ); pan.GetString("shape") != "" || shape != "brick" || skin != "milk" || size != "m" {
 		t.Errorf("quick add drawn as %s/%s/%s, want its type's brick/milk/m", shape, skin, size)
+	}
+	// ...and so are its days: 0 would mean "expires the same day".
+	if got := pan.GetInt("shelfLifeDays"); got != -1 {
+		t.Errorf("quick add stored %d days, want -1 (like its type)", got)
 	}
 	// A product's own look wins, and its skin goes with its shape.
 	pan.Set("shape", "jar")

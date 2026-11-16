@@ -31,6 +31,9 @@ var ui = struct {
 	AdminRemove, AdminDelete, AdminSure, AdminSaved   string
 	AdminHasItems, AdminPick, AdminDone, Cancel       string
 	AdminLoading, AdminFailed                         string
+	AdminNoDate, AdminEdit, AdminNewType              string
+	AdminNewProduct, AdminCreate, AdminPickType       string
+	AdminLeave, AdminLess                             string
 }{
 	Add:          "añadir",
 	AddTitle:     "Añadir a la nevera",
@@ -70,7 +73,7 @@ var ui = struct {
 	PocketBase:    "pocketbase",
 	AdminTypes:    "Categorías",
 	AdminProducts: "Productos",
-	AdminFilter:   "Buscar por nombre o marca…",
+	AdminFilter:   "Buscar…",
 	AdminNone:     "Todavía no hay productos.",
 	AdminLook:     "Aspecto",
 	AdminDays:     "Días de caducidad",
@@ -89,6 +92,15 @@ var ui = struct {
 	Cancel:        "Cancelar",
 	AdminLoading:  "Cargando…",
 	AdminFailed:   "No se ha podido cargar la administración.",
+	// Days: empty means "not set", 0 is the same day.
+	AdminNoDate:     "sin fecha",
+	AdminEdit:       "editar",
+	AdminNewType:    "Nueva categoría",
+	AdminNewProduct: "Nuevo producto",
+	AdminCreate:     "Crear",
+	AdminPickType:   "Elige una categoría",
+	AdminLeave:      "¿Salir sin guardar?",
+	AdminLess:       "menos",
 
 	ShowDoor:          "Mostrar puerta",
 	HideDoor:          "Ocultar puerta",

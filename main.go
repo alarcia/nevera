@@ -78,23 +78,35 @@ func render(e *core.RequestEvent, t *template.Template, p page) error {
 	return e.HTML(http.StatusOK, buf.String())
 }
 
-// adminFragment renders one template of the admin screen from fresh data.
-func adminFragment(e *core.RequestEvent, name string, pick func(*adminView) any) error {
+// frag is one template of the admin screen with its data.
+type frag struct {
+	name string
+	data any
+}
+
+// adminFragments renders pieces of the admin screen from fresh data, in order.
+// A card that does not exist is a 404.
+func adminFragments(e *core.RequestEvent, pick func(*adminView) []frag) error {
 	v, err := adminPage(e.App)
 	if err != nil {
 		return err
 	}
-	data := pick(v)
-	if p, ok := data.(*adminProduct); ok && p == nil {
-		return e.NotFoundError("", nil)
-	} else if t, ok := data.(*adminType); ok && t == nil {
-		return e.NotFoundError("", nil)
-	}
 	var buf bytes.Buffer
-	if err := adminTpl.ExecuteTemplate(&buf, name, data); err != nil {
-		return err
+	for _, f := range pick(v) {
+		if p, ok := f.data.(*adminProduct); ok && p == nil {
+			return e.NotFoundError("", nil)
+		} else if t, ok := f.data.(*adminType); ok && t == nil {
+			return e.NotFoundError("", nil)
+		}
+		if err := adminTpl.ExecuteTemplate(&buf, f.name, f.data); err != nil {
+			return err
+		}
 	}
 	return e.HTML(http.StatusOK, buf.String())
+}
+
+func adminFragment(e *core.RequestEvent, name string, pick func(*adminView) any) error {
+	return adminFragments(e, func(v *adminView) []frag { return []frag{{name, pick(v)}} })
 }
 
 // adminErr answers a failed admin edit with a message the screen shows as is.
@@ -180,6 +192,26 @@ func main() {
 		// The admin screen: the page fetches these as HTML fragments, no navigation.
 		se.Router.GET("/admin", func(e *core.RequestEvent) error {
 			return adminFragment(e, "admin", func(v *adminView) any { return v })
+		})
+		// Creating answers with the new card plus a fresh blank one to replace the
+		// form that was used, in the order they sit on the screen.
+		post("/admin/types", func(e *core.RequestEvent, f url.Values) error {
+			id, err := createType(e.App, f)
+			if err != nil {
+				return adminErr(e, err)
+			}
+			return adminFragments(e, func(v *adminView) []frag {
+				return []frag{{"typecard", v.NewType}, {"typecard", v.typeByID(id)}}
+			})
+		})
+		post("/admin/products", func(e *core.RequestEvent, f url.Values) error {
+			id, err := createProduct(e.App, f)
+			if err != nil {
+				return adminErr(e, err)
+			}
+			return adminFragments(e, func(v *adminView) []frag {
+				return []frag{{"prodcard", v.NewProduct}, {"prodcard", v.productByID(id)}}
+			})
 		})
 		post("/admin/types/{id}", func(e *core.RequestEvent, f url.Values) error {
 			id := e.Request.PathValue("id")

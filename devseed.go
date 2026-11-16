@@ -83,7 +83,7 @@ func devSeed(app core.App, now time.Time) error {
 	for _, s := range samples {
 		ty := types[s.typ]
 		p := core.NewRecord(pc)
-		p.Load(map[string]any{"name": s.name, "brand": s.brand, "type": ty.Id, "size": s.size, "shape": s.shape, "skin": s.skin})
+		p.Load(map[string]any{"name": s.name, "brand": s.brand, "type": ty.Id, "size": s.size, "shape": s.shape, "skin": s.skin, "shelfLifeDays": -1})
 		if err := app.Save(p); err != nil {
 			return err
 		}

@@ -2,16 +2,17 @@
 <header class="adm-head">
   <button type="button" class="btn sm" data-close>{{$t.AdminBack}}</button>
   <h2 class="px" id="adm-title">{{$t.AdminTitle}}</h2>
-  <a class="btn sm adm-pb" href="/_/" target="_blank" rel="noopener">{{$t.PocketBase}}</a>
+  <a class="btn sm adm-pb" href="/_/" target="_blank" rel="noopener"><i class="ico ico-db" aria-hidden="true"></i>{{$t.PocketBase}}</a>
 </header>
 <div class="adm-tabs" role="tablist">
   <button type="button" role="tab" class="adm-tab" data-tab="types" aria-selected="true">{{$t.AdminTypes}}</button>
-  <button type="button" role="tab" class="adm-tab" data-tab="products" aria-selected="false">{{$t.AdminProducts}} <span class="adm-n">{{len .Products}}</span></button>
+  <button type="button" role="tab" class="adm-tab" data-tab="products" aria-selected="false">{{$t.AdminProducts}}</button>
 </div>
 <div class="adm-body">
-  <section class="adm-pane" data-pane="types">{{range .Types}}{{template "typecard" .}}{{end}}</section>
+  <input type="search" class="adm-filter" placeholder="{{$t.AdminFilter}}" aria-label="{{$t.AdminFilter}}">
+  <section class="adm-pane" data-pane="types">{{template "typecard" .NewType}}{{range .Types}}{{template "typecard" .}}{{end}}</section>
   <section class="adm-pane" data-pane="products" hidden>
-    <input type="search" class="adm-filter" placeholder="{{$t.AdminFilter}}" aria-label="{{$t.AdminFilter}}">
+    {{template "prodcard" .NewProduct}}
     {{range .Products}}{{template "prodcard" .}}{{else}}<p class="adm-empty">{{$t.AdminNone}}</p>{{end}}
   </section>
 </div>
@@ -37,30 +38,52 @@
 </dialog>
 {{end}}
 
+{{define "dd"}}<fieldset class="fld">
+  <legend>{{.Legend}}</legend>
+  <details class="dd" data-dd="{{.Kind}}">
+    <summary class="dd-btn"><span class="dd-val{{if not .Cur}} dd-ph{{end}}">{{or .Cur .Ph}}</span></summary>
+    <div class="dd-list">{{range .Opts}}{{template "ddopt" .}}{{end}}</div>
+  </details>
+</fieldset>{{end}}
+
+{{define "ddopt"}}<label class="dd-opt"><input type="radio" name="{{.Name}}" value="{{.Value}}" class="sr"{{if .Checked}} checked{{end}}{{if .From}} data-from="{{.From}}"{{end}}{{with .T}} data-shape="{{.DShape}}" data-skin="{{.Skin}}" data-size="{{.SizeName}}" data-comp="{{.CompName}}" data-life="{{.LifeText}}"{{end}}><span>{{.Label}}</span></label>{{end}}
+
+{{define "num"}}<div class="fld">
+  <label for="{{.ID}}">{{.Legend}}</label>
+  <div class="adm-num">
+    <button type="button" class="adm-num-b" data-step="-1" aria-label="{{.Less}}"><i class="minus" aria-hidden="true"></i></button>
+    <input id="{{.ID}}" name="shelfLifeDays" inputmode="numeric" autocomplete="off" maxlength="4" data-max="3650" value="{{.Value}}" placeholder="{{.Ph}}">
+    <button type="button" class="adm-num-b" data-step="1" aria-label="{{.More}}"><i class="plus" aria-hidden="true"></i></button>
+  </div>
+</div>{{end}}
+
 {{define "typecard"}}{{$t := .O.T}}
-<article class="adm-card" id="t-{{.ID}}">
-  <form method="post" action="/admin/types/{{.ID}}" data-adm>
+<article class="adm-card{{if .New}} adm-new{{end}}"{{if .ID}} id="t-{{.ID}}" data-q="{{.Label}}"{{end}}>
+  <form method="post" action="/admin/types{{if .ID}}/{{.ID}}{{end}}" data-adm>
+    {{if .New}}<h3 class="px adm-new-h"><i class="plus" aria-hidden="true"></i>{{$t.AdminNewType}}</h3>{{end}}
     <div class="adm-top">
-      <button type="button" class="adm-look" data-pick aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini">{{template "sprite" (look (or .Shape "jar") .Skin)}}</span></button>
-      <h3 class="px">{{.Label}}</h3>
+      <button type="button" class="adm-look" data-pick aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini"><span class="big">{{template "sprite" (look .DShape .Skin)}}</span></span><span class="adm-edit"><i class="ico ico-pencil" aria-hidden="true"></i>{{$t.AdminEdit}}</span></button>
+      <label class="fld adm-name"><span>{{$t.Name}}</span><input name="label" required maxlength="40" value="{{.Label}}"></label>
     </div>
     <input type="hidden" name="shape" value="{{.Shape}}">
     <input type="hidden" name="skin" value="{{.Skin}}">
     <div class="adm-fields">
-      <label class="fld"><span>{{$t.Size}}</span><select name="size">{{range .O.Sizes}}<option value="{{.Key}}"{{if eq .Key $.Size}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
-      <label class="fld"><span>{{$t.AdminDays}}</span><input type="number" name="shelfLifeDays" min="0" max="3650" inputmode="numeric" value="{{.Life}}"></label>
-      <label class="fld"><span>{{$t.AdminShelf}}</span><select name="compartment"><option value="">{{$t.AdminNoShelf}}</option>{{range .O.Comps}}<option value="{{.Key}}"{{if eq .Key $.Comp}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+      {{template "dd" .SizeDD}}
+      {{template "num" .DaysField}}
+      <div class="adm-wide">{{template "dd" .CompDD}}</div>
     </div>
-    <button type="submit" class="btn sm adm-save">{{$t.Save}}</button>
+    <button type="submit" class="btn adm-save{{if .New}} primary{{end}}">{{if .New}}{{$t.AdminCreate}}{{else}}{{$t.Save}}{{end}}</button>
   </form>
+  {{if .ID}}<template class="adm-opt">{{template "ddopt" .AsOpt}}</template>{{end}}
 </article>
 {{end}}
 
 {{define "prodcard"}}{{$t := .O.T}}
-<article class="adm-card" id="p-{{.ID}}" data-q="{{.Name}} {{.Brand}}">
-  <form method="post" action="/admin/products/{{.ID}}" data-adm>
+<article class="adm-card{{if .New}} adm-new{{end}}"{{if .ID}} id="p-{{.ID}}" data-q="{{.Name}} {{.Brand}}"{{end}}>
+  <form method="post" action="/admin/products{{if .ID}}/{{.ID}}{{end}}" data-adm>
+    {{if .New}}<h3 class="px adm-new-h"><i class="plus" aria-hidden="true"></i>{{$t.AdminNewProduct}}</h3>{{end}}
     <div class="adm-top">
-      <button type="button" class="adm-look{{if .Shape}} own{{end}}" data-pick data-tshape="{{or .Type.Shape "jar"}}" data-tskin="{{.Type.Skin}}" aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini">{{template "sprite" (look .DrawnShape .DrawnSkin)}}</span></button>
+      <button type="button" class="adm-look{{if .Shape}} own{{end}}" data-pick data-tshape="{{.Type.DShape}}" data-tskin="{{.Type.Skin}}" aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini"><span class="big">{{template "sprite" (look .DrawnShape .DrawnSkin)}}</span></span><span class="adm-edit"><i class="ico ico-pencil" aria-hidden="true"></i>{{$t.AdminEdit}}</span></button>
       <div class="adm-names">
         <label class="fld"><span>{{$t.Name}}</span><input name="name" required maxlength="80" value="{{.Name}}"></label>
         <label class="fld"><span>{{$t.Brand}}</span><input name="brand" maxlength="60" value="{{.Brand}}"></label>
@@ -68,18 +91,18 @@
     </div>
     <input type="hidden" name="shape" value="{{.Shape}}">
     <input type="hidden" name="skin" value="{{.Skin}}">
-    <div class="adm-fields">
-      <label class="fld"><span>{{$t.Type}}</span><select name="type">{{range .O.Types}}<option value="{{.Key}}"{{if eq .Key $.Type.ID}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
-      <label class="fld"><span>{{$t.Size}}</span><select name="size"><option value="">{{$t.AdminLikeType}} ({{.Type.SizeName}})</option>{{range .O.Sizes}}<option value="{{.Key}}"{{if eq .Key $.Size}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
-      <label class="fld"><span>{{$t.AdminDays}}</span><input type="number" name="shelfLifeDays" min="0" max="3650" inputmode="numeric" value="{{if .Life}}{{.Life}}{{end}}" placeholder="{{.Type.Life}}"></label>
-      <label class="fld"><span>{{$t.AdminShelf}}</span><select name="compartment"><option value="">{{$t.AdminLikeType}}{{if .Type.CompName}} ({{.Type.CompName}}){{end}}</option>{{range .O.Comps}}<option value="{{.Key}}"{{if eq .Key $.Comp}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+    <div class="adm-fields adm-stack">
+      {{template "dd" .TypeDD}}
+      {{template "dd" .SizeDD}}
+      {{template "num" .DaysField}}
+      {{template "dd" .CompDD}}
     </div>
-    <button type="submit" class="btn sm adm-save">{{$t.Save}}</button>
+    <button type="submit" class="btn adm-save{{if .New}} primary{{end}}">{{if .New}}{{$t.AdminCreate}}{{else}}{{$t.Save}}{{end}}</button>
   </form>
-  {{template "items" .}}
+  {{if .ID}}{{template "items" .}}
   <form method="post" action="/admin/products/{{.ID}}/delete" data-adm data-sure data-gone class="adm-del">
     <button type="submit" class="btn sm danger">{{$t.AdminDelete}}</button>
-  </form>
+  </form>{{end}}
 </article>
 {{end}}
 

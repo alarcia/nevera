@@ -15,7 +15,7 @@ type opt struct{ Key, Label string }
 
 type typeOpt struct {
 	ID, Label   string
-	Life        int // suggested expiry in days; 0 = none
+	Life        int // suggested expiry in days: 0 = the same day, -1 = none
 	StartsOpen  bool
 	Shape, Skin string
 	Size        string
@@ -23,7 +23,7 @@ type typeOpt struct {
 
 // productOpt is a catalog product as the dialog re-adds it: Shape and Skin are
 // what it is drawn with (its own or its type's), Comp its own suggested
-// compartment ("" = its type's).
+// compartment ("" = its type's), Life its own days (-1 = its type's).
 type productOpt struct {
 	ID, Name, Brand, Type, Shape, Skin, Comp string
 	Life                                     int
@@ -190,6 +190,7 @@ func createItem(app core.App, f url.Values, now time.Time) (string, error) {
 			p.Load(map[string]any{
 				"name": field("name"), "brand": field("brand"), "type": field("type"),
 				"size": field("size"), "shape": field("shape"), "skin": field("skin"),
+				"shelfLifeDays": -1, // like its type
 			})
 			if err := tx.Save(p); err != nil {
 				return err

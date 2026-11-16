@@ -40,6 +40,19 @@ func TestInitMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Shelf life: 0 is the same day now, so what was "0 = none" reads -1.
+	for _, r := range types {
+		life := r.GetInt("shelfLifeDays")
+		if (r.GetString("key") == "leftovers") != (life == -1) || life == 0 {
+			t.Errorf("type %s has shelf life %d", r.GetString("key"), life)
+		}
+	}
+	for _, c := range []string{"types", "products"} {
+		col, _ := app.FindCollectionByNameOrId(c)
+		if min := col.Fields.GetByName("shelfLifeDays").(*core.NumberField).Min; min == nil || *min != -1 {
+			t.Errorf("%s.shelfLifeDays must allow -1", c)
+		}
+	}
 	if products.Fields.GetByName("size").(*core.SelectField).Required || products.Fields.GetByName("compartment") == nil {
 		t.Error("products must be able to inherit their size and have an own compartment")
 	}

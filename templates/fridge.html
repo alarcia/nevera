@@ -17,11 +17,11 @@
     {{range .Fridge.Body}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>
     {{end}}
   </section>
-  <section class="cabinet door-col" aria-label="{{.T.Door}}">
+  <div class="door-wrap"><section class="cabinet door-col" aria-label="{{.T.Door}}">
     <div class="door-title px">{{.T.Door}}</div>
     {{range .Fridge.Door}}{{if .Gap}}<div style="flex:{{.Height}} 1 0"></div>{{else}}<div class="row" style="--h:{{.Height}}">{{range .Comps}}{{template "zone" .}}{{end}}</div>{{end}}
     {{end}}
-  </section>
+  </section></div>
 </div>
 </main>
 {{end}}

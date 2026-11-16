@@ -24,24 +24,30 @@
 @media (hover:hover){.card:hover .it{animation:spin 2.6s steps(36) infinite}}
 @media (prefers-reduced-motion:reduce){.card .it,.it.spin{animation:none!important}}
 
-/* formas */
-.k-brick{--w:22px;--h:42px;--d:16px;--cw:7px;--ch:4px;--cd:7px}
-.k-bottle{--w:16px;--h:34px;--d:16px;--cw:7px;--ch:10px;--cd:7px}
-.k-bottlel{--w:19px;--h:46px;--d:19px;--cw:8px;--ch:12px;--cd:8px}
-.k-jar{--w:22px;--h:24px;--d:22px;--cw:20px;--ch:5px;--cd:20px}
-.k-squeeze{--w:17px;--h:32px;--d:13px;--cw:8px;--ch:7px;--cd:8px}
-.k-tupper{--w:40px;--h:16px;--d:28px;--cw:42px;--ch:4px;--cd:30px}
-.k-tray{--w:40px;--h:10px;--d:28px}
-.k-block{--w:28px;--h:16px;--d:20px}
-.k-can{--w:15px;--h:24px;--d:15px}
-.k-carton{--w:44px;--h:13px;--d:22px}
-.k-cup{--w:15px;--h:17px;--d:15px;--cw:15px;--ch:2px;--cd:15px}
-.k-pack{--w:32px;--h:28px;--d:5px}
-.k-leaf{--w:28px;--h:24px;--d:26px}
-.k-round{--w:20px;--h:18px;--d:20px;--cw:5px;--ch:3px;--cd:5px}
-.k-long{--w:11px;--h:34px;--d:11px;--cw:9px;--ch:7px;--cd:9px}
-.k-melon{--w:44px;--h:36px;--d:40px}
+/* formas. --e: the most room a shape takes while it spins (px); --lift: how far its cap rises above its box.
+   Both come from the dimensions on the same line (the widest turn of the box, its height plus cap and the tilt of its top);
+   shapes_test.go recomputes them, so change a dimension and the test says what to put here. */
+.k-brick{--w:22px;--h:42px;--d:16px;--cw:7px;--ch:4px;--cd:7px;--e:52;--lift:4}
+.k-bottle{--w:16px;--h:34px;--d:16px;--cw:7px;--ch:10px;--cd:7px;--e:49;--lift:10}
+.k-bottlel{--w:19px;--h:46px;--d:19px;--cw:8px;--ch:12px;--cd:8px;--e:63;--lift:12}
+.k-jar{--w:22px;--h:24px;--d:22px;--cw:20px;--ch:5px;--cd:20px;--e:36;--lift:5}
+.k-squeeze{--w:17px;--h:32px;--d:13px;--cw:8px;--ch:7px;--cd:8px;--e:44;--lift:7}
+.k-tupper{--w:40px;--h:16px;--d:28px;--cw:42px;--ch:4px;--cd:30px;--e:52;--lift:4}
+.k-tray{--w:40px;--h:10px;--d:28px;--e:49;--lift:0}
+.k-block{--w:28px;--h:16px;--d:20px;--e:35;--lift:0}
+.k-can{--w:15px;--h:24px;--d:15px;--e:29;--lift:0}
+.k-carton{--w:44px;--h:13px;--d:22px;--e:50;--lift:0}
+.k-cup{--w:15px;--h:17px;--d:15px;--cw:15px;--ch:2px;--cd:15px;--e:24;--lift:2}
+.k-pack{--w:32px;--h:28px;--d:5px;--e:36;--lift:0}
+.k-leaf{--w:28px;--h:24px;--d:26px;--e:39;--lift:0}
+.k-round{--w:20px;--h:18px;--d:20px;--cw:5px;--ch:3px;--cd:5px;--e:29;--lift:3}
+.k-long{--w:11px;--h:34px;--d:11px;--cw:9px;--ch:7px;--cd:9px;--e:44;--lift:7}
+.k-melon{--w:44px;--h:36px;--d:40px;--e:60;--lift:0}
 .k-tray .cap,.k-block .cap,.k-can .cap,.k-carton .cap,.k-pack .cap,.k-leaf .cap,.k-melon .cap{display:none}
+/* Fit: inside a frame a sprite shrinks (never grows) until it fits at every angle of its spin, and the cap
+   that rises above its box is centred along with it. --F is the frame's usable room in px, --S the scale the
+   frame draws sprites at (see .big in app.css). Frames that set neither are left alone. */
+.stage .it,.pv .it,.shape-opt .it,.adm-look .it{--k:min(1,calc(var(--F,999) / (var(--e) * var(--S,1))));scale:var(--k);translate:0 calc(var(--lift) * var(--k) * .5px)}
 
 /* pieles */
 .c-milk{--a:#f4f6fb;--b:#3d6fd6;--c:#3d6fd6}

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14162b">
 <title>{{.Title}}</title>
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/items.css?v={{.V}}">
 <link rel="stylesheet" href="/static/app.css?v={{.V}}">
 <script src="/static/add.js?v={{.V}}" defer></script>
@@ -15,11 +15,11 @@
 <header class="top">
   <a class="logo px" href="/">{{.T.App}}</a>
   {{if .Add}}<button type="button" class="btn add-btn" commandfor="add" command="show-modal"><span class="plus" aria-hidden="true"></span>{{.T.Add}}</button>
-  <button type="button" class="btn add-btn" id="admin-open">{{.T.Admin}}</button>{{end}}
+  <button type="button" class="btn add-btn" id="admin-open"><i class="ico ico-gear" aria-hidden="true"></i>{{.T.Admin}}</button>{{end}}
 </header>
 {{template "content" .}}
 {{if .Add}}{{template "add" .}}
-<dialog id="admin" class="adm" aria-labelledby="adm-title" data-loading="{{.T.AdminLoading}}" data-failed="{{.T.AdminFailed}}" data-sure="{{.T.AdminSure}}" data-saved="{{.T.AdminSaved}}" data-bad="{{.T.BadForm}}" data-back="{{.T.AdminBack}}"><div id="adm-in"></div></dialog>{{end}}
+<dialog id="admin" class="adm" closedby="none" aria-labelledby="adm-title" data-loading="{{.T.AdminLoading}}" data-failed="{{.T.AdminFailed}}" data-sure="{{.T.AdminSure}}" data-saved="{{.T.AdminSaved}}" data-bad="{{.T.BadForm}}" data-back="{{.T.AdminBack}}" data-unsaved="{{.T.AdminLeave}}" data-liketype="{{.T.AdminLikeType}}" data-picktype="{{.T.AdminPickType}}"><div id="adm-in"></div></dialog>{{end}}
 <p class="toast px" role="status" aria-live="polite"></p>
 </body>
 </html>

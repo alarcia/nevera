@@ -36,13 +36,14 @@
     if (r) r.checked = true;
   }
 
-  // Expiry: today + the product's (or its type's) usual shelf life; 0 = none.
-  // The user has the last word: typing a date or ticking "no date" stops it.
+  // Expiry: today + the product's (or its type's) usual shelf life; 0 is the
+  // same day, -1 means no suggestion. The user has the last word: typing a date
+  // or ticking "no date" stops it.
   function defaultExpiry() {
     if (touched.exp || f.noExpiry.checked) return;
     const t = types[picked ? picked.Type : val("type")];
-    const life = (picked && picked.Life) || (t && t.Life) || 0;
-    f.expiresOn.value = life ? plusDays(life) : "";
+    const life = picked && picked.Life >= 0 ? picked.Life : t ? t.Life : -1;
+    f.expiresOn.value = life >= 0 ? plusDays(life) : "";
   }
 
   function suggest() {

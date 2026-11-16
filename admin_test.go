@@ -58,12 +58,12 @@ func TestAdminType(t *testing.T) {
 	dairy, top := typeNamed(t, app, "Lácteo"), compNamed(t, app, "Balda alta")
 
 	// Defaults and the suggested shelf move together.
-	err := saveType(app, dairy.Id, url.Values{"shape": {"bottle"}, "skin": {"oj"}, "size": {"l"}, "shelfLifeDays": {"21"}, "compartment": {top.Id}})
+	err := saveType(app, dairy.Id, url.Values{"label": {"Lácteos"}, "shape": {"bottle"}, "skin": {"oj"}, "size": {"l"}, "shelfLifeDays": {"21"}, "compartment": {top.Id}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	dairy, _ = app.FindRecordById("types", dairy.Id)
-	if dairy.GetString("shape") != "bottle" || dairy.GetString("skin") != "oj" || dairy.GetString("size") != "l" || dairy.GetInt("shelfLifeDays") != 21 {
+	if dairy.GetString("label") != "Lácteos" || dairy.GetString("shape") != "bottle" || dairy.GetString("skin") != "oj" || dairy.GetString("size") != "l" || dairy.GetInt("shelfLifeDays") != 21 {
 		t.Errorf("type not saved: %v", dairy.PublicExport())
 	}
 	a, err := addPage(app, now)
@@ -84,34 +84,42 @@ func TestAdminType(t *testing.T) {
 	if err := app.Save(low); err != nil {
 		t.Fatal(err)
 	}
-	if err := saveType(app, dairy.Id, url.Values{"shape": {"bottle"}, "size": {"l"}, "compartment": {top.Id}}); err != nil {
+	if err := saveType(app, dairy.Id, url.Values{"label": {"Lácteos"}, "shape": {"bottle"}, "size": {"l"}, "compartment": {top.Id}}); err != nil {
 		t.Fatal(err)
 	}
 	if low = compNamed(t, app, "Balda baja"); !slices.Contains(low.GetStringSlice("types"), dairy.Id) {
 		t.Error("an untouched second recommendation was dropped")
 	}
-	if dairy, _ = app.FindRecordById("types", dairy.Id); dairy.GetString("skin") != "" || dairy.GetInt("shelfLifeDays") != 0 {
-		t.Error("skin and days must follow the form")
+	if dairy, _ = app.FindRecordById("types", dairy.Id); dairy.GetString("skin") != "" || dairy.GetInt("shelfLifeDays") != -1 {
+		t.Error("skin and days must follow the form: no days means no suggested date")
+	}
+	// 0 days is a value of its own: the same day.
+	if err := saveType(app, dairy.Id, url.Values{"label": {"Lácteos"}, "shape": {"bottle"}, "size": {"l"}, "shelfLifeDays": {"0"}, "compartment": {top.Id}}); err != nil {
+		t.Fatal(err)
+	}
+	if dairy, _ = app.FindRecordById("types", dairy.Id); dairy.GetInt("shelfLifeDays") != 0 {
+		t.Errorf("0 days stored as %d", dairy.GetInt("shelfLifeDays"))
 	}
 
 	// No shelf at all, then bad input stores nothing.
-	if err := saveType(app, dairy.Id, url.Values{"shape": {"bottle"}, "size": {"l"}}); err != nil {
+	if err := saveType(app, dairy.Id, url.Values{"label": {"Lácteos"}, "shape": {"bottle"}, "size": {"l"}}); err != nil {
 		t.Fatal(err)
 	}
 	if top = compNamed(t, app, "Balda alta"); slices.Contains(top.GetStringSlice("types"), dairy.Id) {
 		t.Error("clearing the shelf left it recommended")
 	}
 	for name, f := range map[string]url.Values{
-		"bad shelf": {"shape": {"jar"}, "size": {"m"}, "compartment": {"nope"}},
-		"bad days":  {"shape": {"jar"}, "size": {"m"}, "shelfLifeDays": {"-3"}},
-		"words":     {"shape": {"jar"}, "size": {"m"}, "shelfLifeDays": {"soon"}},
-		"bad shape": {"shape": {"cube"}, "size": {"m"}},
+		"bad shelf": {"label": {"x"}, "shape": {"jar"}, "size": {"m"}, "compartment": {"nope"}},
+		"bad days":  {"label": {"x"}, "shape": {"jar"}, "size": {"m"}, "shelfLifeDays": {"-3"}},
+		"words":     {"label": {"x"}, "shape": {"jar"}, "size": {"m"}, "shelfLifeDays": {"soon"}},
+		"bad shape": {"label": {"x"}, "shape": {"cube"}, "size": {"m"}},
+		"no name":   {"label": {" "}, "shape": {"jar"}, "size": {"m"}},
 	} {
 		if err := saveType(app, dairy.Id, f); err == nil {
 			t.Errorf("%s: want an error", name)
 		}
 	}
-	if dairy, _ = app.FindRecordById("types", dairy.Id); dairy.GetString("shape") != "bottle" {
+	if dairy, _ = app.FindRecordById("types", dairy.Id); dairy.GetString("shape") != "bottle" || dairy.GetString("label") != "Lácteos" {
 		t.Error("a failed save changed the type")
 	}
 }
@@ -165,6 +173,7 @@ func TestAdminProduct(t *testing.T) {
 		"bad type": {"name": {"x"}, "type": {"nope"}},
 		"bad size": {"name": {"x"}, "type": {dairy.Id}, "size": {"huge"}},
 		"bad days": {"name": {"x"}, "type": {dairy.Id}, "shelfLifeDays": {"-1"}},
+		"too long": {"name": {"x"}, "type": {dairy.Id}, "shelfLifeDays": {"99999"}},
 		"bad comp": {"name": {"x"}, "type": {dairy.Id}, "compartment": {"nope"}},
 	} {
 		if err := saveProduct(app, p.Id, f); err == nil {
@@ -220,7 +229,8 @@ func TestAdminTemplates(t *testing.T) {
 	for _, want := range []string{
 		`href="/_/"`, "pocketbase", "Categorías", `id="t-` + v.Types[0].ID + `"`, `id="p-` + v.Products[0].ID + `"`,
 		`data-q="Refresco de cola Kora"`, `action="/admin/items/`, ">quitar<", ">Borrar producto<", `id="adm-pick"`,
-		`placeholder="90"`, // the product's days field shows its type's value while empty
+		`placeholder="como la categoría (90)"`, // the product's days field shows its type's value while empty
+		`Nueva categoría`, `Nuevo producto`, `Elige una categoría`, `data-from="size"`, `data-from="comp"`, `ico-db`, ">editar<",
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("admin screen lacks %q", want)
@@ -228,6 +238,35 @@ func TestAdminTemplates(t *testing.T) {
 	}
 	if n := strings.Count(html, `class="adm-card"`); n != 14+22 {
 		t.Errorf("%d cards, want %d", n, 14+22)
+	}
+	// One blank card to create a category and one to create a product; the app
+	// draws every control itself, and each category can refresh the others' lists.
+	if n := strings.Count(html, `class="adm-card adm-new"`); n != 2 {
+		t.Errorf("%d blank cards, want 2", n)
+	}
+	// The blank card leads each tab, and one search box filters both (a category is searchable too).
+	if blank, first := strings.Index(html, `class="adm-card adm-new"`), strings.Index(html, `id="t-`); blank < 0 || blank > first {
+		t.Error("the blank category card must come before the existing ones")
+	}
+	if n := strings.Count(html, `class="adm-filter"`); n != 1 || !strings.Contains(html, `data-q="Sobras"`) {
+		t.Errorf("%d search boxes, want 1; categories must carry data-q", n)
+	}
+	if n := strings.Count(html, `<template class="adm-opt">`); n != 14 {
+		t.Errorf("%d category options to sync, want 14", n)
+	}
+	for _, not := range []string{"<select", `type="number"`, `class="adm-n"`} {
+		if strings.Contains(html, not) {
+			t.Errorf("admin screen still has %q", not)
+		}
+	}
+	// Days: 0 is a value (the same day), empty means not set.
+	left := v.typeByID(typeNamed(t, app, "Sobras").Id)
+	if c := render("typecard", left); !strings.Contains(c, `value="" placeholder="sin fecha"`) {
+		t.Errorf("Sobras has no suggested date, its field must be empty: %s", c)
+	}
+	left.Life = 0
+	if c := render("typecard", left); !strings.Contains(c, `value="0"`) {
+		t.Error("0 days must show as 0")
 	}
 	// One product's items block, as the screen swaps it after a quantity edit.
 	if items := render("items", v.Products[0]); !strings.Contains(items, `value="2 L"`) || strings.Contains(items, "<article") {
@@ -263,10 +302,77 @@ func TestTypeLookReachesTheFridge(t *testing.T) {
 	if s := slot(); s.Shape != "brick" || s.Skin != "milk" {
 		t.Errorf("drawn as %s/%s, want its type's brick/milk", s.Shape, s.Skin)
 	}
-	if err := saveType(app, dairy.Id, url.Values{"shape": {"bottle"}, "skin": {"oj"}, "size": {"m"}, "compartment": {comp.Id}}); err != nil {
+	if err := saveType(app, dairy.Id, url.Values{"label": {"Lácteo"}, "shape": {"bottle"}, "skin": {"oj"}, "size": {"m"}, "compartment": {comp.Id}}); err != nil {
 		t.Fatal(err)
 	}
 	if s := slot(); s.Shape != "bottle" || s.Skin != "oj" {
 		t.Errorf("drawn as %s/%s after the type changed, want bottle/oj", s.Shape, s.Skin)
+	}
+}
+
+func TestAdminCreate(t *testing.T) {
+	app := testApp(t)
+	top := compNamed(t, app, "Balda alta")
+
+	id, err := createType(app, url.Values{"label": {" Bebidas frías "}, "shape": {"can"}, "skin": {"cola"}, "size": {"s"}, "shelfLifeDays": {"0"}, "compartment": {top.Id}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, _ := app.FindRecordById("types", id)
+	if r.GetString("key") != "bebidas_frias" || r.GetString("label") != "Bebidas frías" || r.GetInt("sort") != 15 ||
+		r.GetString("shape") != "can" || r.GetString("skin") != "cola" || r.GetString("size") != "s" || r.GetInt("shelfLifeDays") != 0 {
+		t.Errorf("new category: %v", r.PublicExport())
+	}
+	if top = compNamed(t, app, "Balda alta"); !slices.Contains(top.GetStringSlice("types"), id) {
+		t.Error("the category is not recommended in the shelf it was given")
+	}
+
+	// The same name again, and a name with nothing to make a key of, still get unique keys.
+	for label, key := range map[string]string{"Bebidas frías": "bebidas_frias_2", "¿¿??": "type"} {
+		id, err := createType(app, url.Values{"label": {label}, "shape": {"jar"}, "size": {"m"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if r, _ := app.FindRecordById("types", id); r.GetString("key") != key || r.GetInt("shelfLifeDays") != -1 {
+			t.Errorf("%q: key %q, days %d; want %q and -1", label, r.GetString("key"), r.GetInt("shelfLifeDays"), key)
+		}
+	}
+	n, _ := app.CountRecords("types")
+	for name, f := range map[string]url.Values{
+		"no name":  {"label": {"  "}, "shape": {"jar"}},
+		"bad days": {"label": {"x"}, "shelfLifeDays": {"-2"}},
+		"bad comp": {"label": {"x"}, "compartment": {"nope"}},
+	} {
+		if _, err := createType(app, f); err == nil {
+			t.Errorf("%s: want an error", name)
+		}
+	}
+	if got, _ := app.CountRecords("types"); got != n {
+		t.Errorf("failed creates left %d categories, want %d", got, n)
+	}
+
+	// A product: the newest comes first, and what it leaves empty is its category's.
+	pid, err := createProduct(app, url.Values{"name": {" Zumo "}, "brand": {"Marca"}, "type": {id}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, _ := app.FindRecordById("products", pid)
+	if p.GetString("name") != "Zumo" || p.GetInt("shelfLifeDays") != -1 || p.GetString("shape") != "" || p.GetString("size") != "" {
+		t.Errorf("new product: %v", p.PublicExport())
+	}
+	if v, _ := adminPage(app); v.Products[0].ID != pid || v.NewProduct.Type.ID != "" || v.NewType.ID != "" {
+		t.Error("the new product must come first")
+	}
+	for name, f := range map[string]url.Values{
+		"no name":  {"type": {id}},
+		"no type":  {"name": {"x"}},
+		"bad type": {"name": {"x"}, "type": {"nope"}},
+	} {
+		if _, err := createProduct(app, f); err == nil {
+			t.Errorf("%s: want an error", name)
+		}
+	}
+	if c, _ := app.CountRecords("products"); c != 1 {
+		t.Errorf("%d products, want 1", c)
 	}
 }
