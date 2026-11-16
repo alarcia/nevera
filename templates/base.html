@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14162b">
 <title>{{.Title}}</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v={{.V}}" data-open="/static/favicon-open.svg?v={{.V}}">
+<script>/* The fridge in the tab is open while the tab is the one being looked at. */
+{const l=document.querySelector('link[rel=icon]'),shut=l.href,f=()=>l.href=document.hidden?shut:l.dataset.open;document.addEventListener('visibilitychange',f);f()}</script>
 <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/items.css?v={{.V}}">
 <link rel="stylesheet" href="/static/app.css?v={{.V}}">
