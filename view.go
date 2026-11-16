@@ -132,10 +132,11 @@ func (s *stock) itemView(it *core.Record, compID string) itemView {
 	}
 	st := itemStatus(s.now, it.GetDateTime("expiresOn").Time(), it.GetDateTime("openedAt").Time(), maxOpen)
 
+	shape, skin, _ := drawnAs(p, typ)
 	v := itemView{
 		Name: p.GetString("name"), Brand: p.GetString("brand"), Type: typ.GetString("label"),
 		Quantity: it.GetString("quantity"),
-		Shape:    orDefault(p.GetString("shape"), "jar"), Skin: p.GetString("skin"),
+		Shape:    shape, Skin: skin,
 		Chip: st.Chip, ExpLong: st.ExpLong, OpenLabel: st.OpenLabel,
 		LevelClass: "ok", LevelText: "",
 		HasPct: it.GetInt("remainingPct") > 0, Pct: it.GetInt("remainingPct"),
@@ -162,11 +163,23 @@ func orDefault(s, def string) string {
 	return s
 }
 
+// drawnAs is how a product is drawn and weighed: its own look (a shape with
+// its skin) and size when it has them, else its type's, else plain defaults.
+func drawnAs(p, typ *core.Record) (shape, skin, size string) {
+	shape, skin = p.GetString("shape"), p.GetString("skin")
+	if shape == "" {
+		shape, skin = typ.GetString("shape"), typ.GetString("skin")
+	}
+	return orDefault(shape, "jar"), skin, orDefault(orDefault(p.GetString("size"), typ.GetString("size")), "m")
+}
+
 func (s *stock) compView(c *core.Record, withItems bool) compView {
 	items := s.byComp[c.Id]
 	points := 0
 	for _, it := range items {
-		points += sizeWeight[it.ExpandedOne("product").GetString("size")]
+		p := it.ExpandedOne("product")
+		_, _, size := drawnAs(p, p.ExpandedOne("type"))
+		points += sizeWeight[size]
 	}
 	var rec []string
 	for _, t := range c.ExpandedAll("types") {
@@ -192,7 +205,8 @@ func (s *stock) compView(c *core.Record, withItems bool) compView {
 			break
 		}
 		p := it.ExpandedOne("product")
-		v.Slots = append(v.Slots, slotView{Shape: orDefault(p.GetString("shape"), "jar"), Skin: p.GetString("skin"), Back: i%3 == 1})
+		shape, skin, _ := drawnAs(p, p.ExpandedOne("type"))
+		v.Slots = append(v.Slots, slotView{Shape: shape, Skin: skin, Back: i%3 == 1})
 	}
 	return v
 }
@@ -238,21 +252,27 @@ func withGap(rows []rowView, bodyTotal int) []rowView {
 	return append(rows[:last:last], rowView{Gap: true, Height: gap}, rows[last])
 }
 
+// layout splits the compartments into the body and door columns, in rows.
+func (s *stock) layout() (body, door []rowView) {
+	var b, d []compView
+	for _, c := range s.comps {
+		if c.GetString("kind") == "door" {
+			d = append(d, s.compView(c, false))
+		} else {
+			b = append(b, s.compView(c, false))
+		}
+	}
+	body = groupRows(b)
+	return body, withGap(groupRows(d), totalHeight(body))
+}
+
 func fridgePage(app core.App, now time.Time) (*fridgeView, error) {
 	s, err := loadStock(app, now)
 	if err != nil {
 		return nil, err
 	}
-	var body, door []compView
-	for _, c := range s.comps {
-		if c.GetString("kind") == "door" {
-			door = append(door, s.compView(c, false))
-		} else {
-			body = append(body, s.compView(c, false))
-		}
-	}
-	bodyRows, doorRows := groupRows(body), groupRows(door)
-	return &fridgeView{Unit: s.unit.GetString("name"), Body: bodyRows, Door: withGap(doorRows, totalHeight(bodyRows))}, nil
+	body, door := s.layout()
+	return &fridgeView{Unit: s.unit.GetString("name"), Body: body, Door: door}, nil
 }
 
 func compartmentPage(app core.App, id string, now time.Time) (*compView, error) {

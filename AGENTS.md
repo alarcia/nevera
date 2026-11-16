@@ -5,9 +5,21 @@ Rules for any AI agent working in this repository. Read [PROJECT.md](PROJECT.md)
 ## Never, without explicit permission
 
 - **Never commit, push, amend, rebase, tag or touch git history.** The owner always commits and pushes. Leave changes in the working tree and say what changed.
-- **Never start servers or long-running processes** (`go run . serve`, the built binary, `docker run`, `docker compose up`, dev servers). Ask first, and stop anything you started when done.
+- **Never leave a server or long-running process running when you finish.** You may start the app (`go run . serve`, the built binary) as often and as long as you need to validate and test, but stop it before you report back, so the owner never finds the port busy. Ask first before starting anything else long-running (`docker run`, `docker compose up`).
 
-Pushing to `main` deploys to production through GitHub Actions, so these rules are not negotiable.
+Pushing to `main` deploys to production through GitHub Actions, so the git rule is not negotiable.
+
+## Running locally (no Docker needed)
+
+```sh
+go run . serve            # http://127.0.0.1:8090, dashboard on /_/ (data in ./pb_data, gitignored)
+go run . devseed          # fills an empty local database with invented products
+go build -o nevera . && ./nevera serve   # same, as a binary
+```
+
+Agents may run these while validating, and must stop them when done; see the rule above.
+
+Validate against a throwaway copy, never the owner's `pb_data` or port: `--dir <tmp>` and `--http 127.0.0.1:8091`. A data directory with no superuser makes `serve` open PocketBase's installer in the owner's default browser (one tab per start), so create one first: `go run . superuser upsert throwaway@example.com <password> --dir <tmp>`. Nothing a test run does may be visible to the owner: no browser tabs, no windows.
 
 ## Working agreement
 

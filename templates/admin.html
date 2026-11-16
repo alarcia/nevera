@@ -1,0 +1,100 @@
+{{define "admin"}}{{$t := .O.T}}
+<header class="adm-head">
+  <button type="button" class="btn sm" data-close>{{$t.AdminBack}}</button>
+  <h2 class="px" id="adm-title">{{$t.AdminTitle}}</h2>
+  <a class="btn sm adm-pb" href="/_/" target="_blank" rel="noopener">{{$t.PocketBase}}</a>
+</header>
+<div class="adm-tabs" role="tablist">
+  <button type="button" role="tab" class="adm-tab" data-tab="types" aria-selected="true">{{$t.AdminTypes}}</button>
+  <button type="button" role="tab" class="adm-tab" data-tab="products" aria-selected="false">{{$t.AdminProducts}} <span class="adm-n">{{len .Products}}</span></button>
+</div>
+<div class="adm-body">
+  <section class="adm-pane" data-pane="types">{{range .Types}}{{template "typecard" .}}{{end}}</section>
+  <section class="adm-pane" data-pane="products" hidden>
+    <input type="search" class="adm-filter" placeholder="{{$t.AdminFilter}}" aria-label="{{$t.AdminFilter}}">
+    {{range .Products}}{{template "prodcard" .}}{{else}}<p class="adm-empty">{{$t.AdminNone}}</p>{{end}}
+  </section>
+</div>
+<p class="adm-status" role="status" aria-live="polite"></p>
+<dialog id="adm-pick" class="adm-pick" aria-labelledby="adm-pick-title">
+  <div class="adm-pick-in">
+    <h3 class="px" id="adm-pick-title">{{$t.AdminPick}}</h3>
+    <div class="stage" aria-hidden="true"><span class="big" id="adm-pick-pv">{{template "sprite" (look "jar" "")}}</span></div>
+    <fieldset class="group">
+      <legend>{{$t.Shape}}</legend>
+      <div class="shapes">{{range .O.Shapes}}<label class="opt shape-opt" title="{{.Label}}"><input type="radio" name="shape" value="{{.Key}}" class="sr" aria-label="{{.Label}}"><span class="mini">{{template "sprite" (look .Key "")}}</span></label>{{end}}</div>
+    </fieldset>
+    <fieldset class="group">
+      <legend>{{$t.Colors}}</legend>
+      <div class="skins"><label class="opt skin-opt" title="{{$t.NoSkin}}"><input type="radio" name="skin" value="" class="sr" aria-label="{{$t.NoSkin}}"><i class="sw"></i></label>{{range .O.Skins}}<label class="opt skin-opt" title="{{.Label}}"><input type="radio" name="skin" value="{{.Key}}" class="sr" aria-label="{{.Label}}"><i class="sw c-{{.Key}}"></i></label>{{end}}</div>
+    </fieldset>
+    <div class="adm-pick-foot">
+      <button type="button" class="btn sm" data-like>{{$t.AdminLikeType}}</button>
+      <button type="button" class="btn sm" data-cancel>{{$t.Cancel}}</button>
+      <button type="button" class="btn sm primary" data-done>{{$t.AdminDone}}</button>
+    </div>
+  </div>
+</dialog>
+{{end}}
+
+{{define "typecard"}}{{$t := .O.T}}
+<article class="adm-card" id="t-{{.ID}}">
+  <form method="post" action="/admin/types/{{.ID}}" data-adm>
+    <div class="adm-top">
+      <button type="button" class="adm-look" data-pick aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini">{{template "sprite" (look (or .Shape "jar") .Skin)}}</span></button>
+      <h3 class="px">{{.Label}}</h3>
+    </div>
+    <input type="hidden" name="shape" value="{{.Shape}}">
+    <input type="hidden" name="skin" value="{{.Skin}}">
+    <div class="adm-fields">
+      <label class="fld"><span>{{$t.Size}}</span><select name="size">{{range .O.Sizes}}<option value="{{.Key}}"{{if eq .Key $.Size}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+      <label class="fld"><span>{{$t.AdminDays}}</span><input type="number" name="shelfLifeDays" min="0" max="3650" inputmode="numeric" value="{{.Life}}"></label>
+      <label class="fld"><span>{{$t.AdminShelf}}</span><select name="compartment"><option value="">{{$t.AdminNoShelf}}</option>{{range .O.Comps}}<option value="{{.Key}}"{{if eq .Key $.Comp}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+    </div>
+    <button type="submit" class="btn sm adm-save">{{$t.Save}}</button>
+  </form>
+</article>
+{{end}}
+
+{{define "prodcard"}}{{$t := .O.T}}
+<article class="adm-card" id="p-{{.ID}}" data-q="{{.Name}} {{.Brand}}">
+  <form method="post" action="/admin/products/{{.ID}}" data-adm>
+    <div class="adm-top">
+      <button type="button" class="adm-look{{if .Shape}} own{{end}}" data-pick data-tshape="{{or .Type.Shape "jar"}}" data-tskin="{{.Type.Skin}}" aria-label="{{$t.AdminLook}}" title="{{$t.AdminLook}}"><span class="mini">{{template "sprite" (look .DrawnShape .DrawnSkin)}}</span></button>
+      <div class="adm-names">
+        <label class="fld"><span>{{$t.Name}}</span><input name="name" required maxlength="80" value="{{.Name}}"></label>
+        <label class="fld"><span>{{$t.Brand}}</span><input name="brand" maxlength="60" value="{{.Brand}}"></label>
+      </div>
+    </div>
+    <input type="hidden" name="shape" value="{{.Shape}}">
+    <input type="hidden" name="skin" value="{{.Skin}}">
+    <div class="adm-fields">
+      <label class="fld"><span>{{$t.Type}}</span><select name="type">{{range .O.Types}}<option value="{{.Key}}"{{if eq .Key $.Type.ID}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+      <label class="fld"><span>{{$t.Size}}</span><select name="size"><option value="">{{$t.AdminLikeType}} ({{.Type.SizeName}})</option>{{range .O.Sizes}}<option value="{{.Key}}"{{if eq .Key $.Size}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+      <label class="fld"><span>{{$t.AdminDays}}</span><input type="number" name="shelfLifeDays" min="0" max="3650" inputmode="numeric" value="{{if .Life}}{{.Life}}{{end}}" placeholder="{{.Type.Life}}"></label>
+      <label class="fld"><span>{{$t.AdminShelf}}</span><select name="compartment"><option value="">{{$t.AdminLikeType}}{{if .Type.CompName}} ({{.Type.CompName}}){{end}}</option>{{range .O.Comps}}<option value="{{.Key}}"{{if eq .Key $.Comp}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+    </div>
+    <button type="submit" class="btn sm adm-save">{{$t.Save}}</button>
+  </form>
+  {{template "items" .}}
+  <form method="post" action="/admin/products/{{.ID}}/delete" data-adm data-sure data-gone class="adm-del">
+    <button type="submit" class="btn sm danger">{{$t.AdminDelete}}</button>
+  </form>
+</article>
+{{end}}
+
+{{define "items"}}{{$t := .O.T}}
+<div class="adm-items">
+  <h4 class="adm-h">{{$t.AdminStored}}</h4>
+  {{range .Items}}
+  <div class="adm-item">
+    <form method="post" action="/admin/items/{{.ID}}" data-adm data-swap=".adm-items" class="adm-qty">
+      <label class="fld"><span class="sr">{{$t.Quantity}}</span><input name="quantity" maxlength="40" value="{{.Quantity}}" placeholder="{{$t.Quantity}}"></label>
+      <button type="submit" class="btn sm">{{$t.Save}}</button>
+    </form>
+    <span class="adm-where">{{.Where}}{{if .Expiry}} · {{.Expiry}}{{end}}</span>
+    <form method="post" action="/admin/items/{{.ID}}/delete" data-adm data-swap=".adm-items" data-sure><button type="submit" class="btn sm danger">{{$t.AdminRemove}}</button></form>
+  </div>
+  {{else}}<p class="adm-empty">{{$t.AdminNothing}}</p>{{end}}
+</div>
+{{end}}

@@ -8,12 +8,107 @@
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/items.css?v={{.V}}">
 <link rel="stylesheet" href="/static/app.css?v={{.V}}">
+<script src="/static/add.js?v={{.V}}" defer></script>
+<script src="/static/admin.js?v={{.V}}" defer></script>
 </head>
 <body class="{{.Body}}">
-<header class="top"><a class="logo px" href="/">{{.T.App}}</a></header>
+<header class="top">
+  <a class="logo px" href="/">{{.T.App}}</a>
+  {{if .Add}}<button type="button" class="btn add-btn" commandfor="add" command="show-modal"><span class="plus" aria-hidden="true"></span>{{.T.Add}}</button>
+  <button type="button" class="btn add-btn" id="admin-open">{{.T.Admin}}</button>{{end}}
+</header>
 {{template "content" .}}
+{{if .Add}}{{template "add" .}}
+<dialog id="admin" class="adm" aria-labelledby="adm-title" data-loading="{{.T.AdminLoading}}" data-failed="{{.T.AdminFailed}}" data-sure="{{.T.AdminSure}}" data-saved="{{.T.AdminSaved}}" data-bad="{{.T.BadForm}}" data-back="{{.T.AdminBack}}"><div id="adm-in"></div></dialog>{{end}}
+<p class="toast px" role="status" aria-live="polite"></p>
 </body>
 </html>
 {{end}}
 
 {{define "sprite"}}<span class="it k-{{.Shape}} c-{{.Skin}}"><i class="f f1"></i><i class="f f2"></i><i class="f f3"></i><i class="f f4"></i><i class="f f5"></i><span class="cap"><i class="f f1"></i><i class="f f2"></i><i class="f f3"></i><i class="f f4"></i><i class="f f5"></i></span></span>{{end}}
+
+{{define "mmzone"}}<label class="mm-z {{.Kind}}"><input type="radio" name="compartment" value="{{.ID}}" class="sr" required><span class="mm-n">{{.Name}}</span><span class="mm-tag px"></span><span class="mm-fill" aria-hidden="true"><i style="width:{{.FillBar}}%"></i></span></label>{{end}}
+
+{{define "add"}}{{$t := .T}}{{with .Add}}
+<dialog id="add" class="sheet" closedby="any" aria-labelledby="add-title"
+  data-new="{{.NewProduct}}" data-saved-in="{{.SavedIn}}" data-saved-note="{{$t.SavedNote}}" data-bad="{{$t.BadForm}}" data-sug-own="{{$t.SugOwn}}">
+<form method="post" action="/items" class="add-form" autocomplete="off">
+  <header class="sheet-head">
+    <div class="pv stage" aria-hidden="true"><span class="big">{{template "sprite" (look .DefaultShape .DefaultSkin)}}</span></div>
+    <div class="pv-text">
+      <h2 class="px" id="add-title">{{$t.AddTitle}}</h2>
+      <p class="pv-name">{{.NewProduct}}</p>
+    </div>
+    <button type="button" class="x px" commandfor="add" command="close" aria-label="{{$t.Close}}">×</button>
+  </header>
+
+  <div class="sheet-body">
+    <section class="step">
+      <h3 class="px"><span class="num">1</span>{{$t.StepWhat}}</h3>
+      <input type="hidden" name="product">
+      <div class="known" hidden>
+        <div class="stage" aria-hidden="true"><span class="known-it"></span></div>
+        <div><span class="tag px">{{$t.Known}}</span><b class="known-name"></b><span class="known-brand"></span></div>
+        <button type="button" class="btn sm known-change">{{$t.Change}}</button>
+      </div>
+      <fieldset class="new">
+        <label class="fld"><span>{{$t.Name}}</span><input name="name" required maxlength="80" enterkeyhint="next"></label>
+        <ul class="sugg" hidden></ul>
+        <fieldset class="group">
+          <legend>{{$t.Type}}</legend>
+          <div class="chips">{{range $i, $ty := .Types}}<label class="opt chip-opt"><input type="radio" name="type" value="{{.ID}}" class="sr"{{if not $i}} required{{end}}><span>{{.Label}}</span></label>{{end}}</div>
+        </fieldset>
+      </fieldset>
+    </section>
+
+    <section class="step">
+      <h3 class="px"><span class="num">2</span>{{$t.StepWhen}}</h3>
+      <div class="when">
+        <label class="fld"><span>{{$t.Expiry}}</span><input type="date" name="expiresOn" min="2000-01-01"></label>
+        <label class="switch"><input type="checkbox" name="noExpiry" class="sr"><i aria-hidden="true"></i><span>{{$t.NoDate}}</span></label>
+      </div>
+    </section>
+
+    <section class="step">
+      <h3 class="px"><span class="num">3</span>{{$t.StepWhere}}</h3>
+      <p class="why-sug" aria-live="polite"></p>
+      <fieldset class="minimap" data-suggested="{{$t.Suggested}}">
+        <legend class="sr">{{$t.StepWhere}}</legend>
+        <div class="mm-col">{{range .Body}}<div class="mm-row">{{range .Comps}}{{template "mmzone" .}}{{end}}</div>{{end}}</div>
+        <div class="mm-col mm-door">{{range .Door}}{{if not .Gap}}<div class="mm-row">{{range .Comps}}{{template "mmzone" .}}{{end}}</div>{{end}}{{end}}</div>
+      </fieldset>
+    </section>
+
+    <details class="extras">
+      <summary class="px">{{$t.MoreFields}}</summary>
+      <div class="extras-body">
+        <label class="fld"><span>{{$t.Quantity}}</span><input name="quantity" maxlength="40" placeholder="{{$t.QuantityHint}}" enterkeyhint="next"></label>
+        <label class="switch"><input type="checkbox" name="opened" class="sr"><i aria-hidden="true"></i><span>{{$t.Opened}}</span></label>
+        <fieldset class="new">
+          <label class="fld"><span>{{$t.Brand}}</span><input name="brand" maxlength="60" placeholder="{{$t.BrandHint}}" enterkeyhint="done"></label>
+          <fieldset class="group" data-own="size">
+            <legend>{{$t.Size}}</legend>
+            <div class="sizes">{{range $i, $s := .Sizes}}<label class="opt size-opt"><input type="radio" name="size" value="{{.Key}}" class="sr"{{if eq .Key "m"}} checked{{end}}><i class="box s{{$i}}" aria-hidden="true"></i><span>{{.Label}}</span></label>{{end}}</div>
+          </fieldset>
+          <fieldset class="group" data-own="look">
+            <legend>{{$t.Shape}}</legend>
+            <div class="shapes">{{range .Shapes}}<label class="opt shape-opt" title="{{.Label}}"><input type="radio" name="shape" value="{{.Key}}" class="sr" aria-label="{{.Label}}"{{if eq .Key $.Add.DefaultShape}} checked{{end}}><span class="mini">{{template "sprite" (look .Key "")}}</span></label>{{end}}</div>
+          </fieldset>
+          <fieldset class="group" data-own="look">
+            <legend>{{$t.Colors}}</legend>
+            <div class="skins"><label class="opt skin-opt" title="{{$t.NoSkin}}"><input type="radio" name="skin" value="" class="sr" aria-label="{{$t.NoSkin}}" checked><i class="sw"></i></label>{{range .Skins}}<label class="opt skin-opt" title="{{.Label}}"><input type="radio" name="skin" value="{{.Key}}" class="sr" aria-label="{{.Label}}"><i class="sw c-{{.Key}}"></i></label>{{end}}</div>
+          </fieldset>
+        </fieldset>
+      </div>
+    </details>
+  </div>
+
+  <footer class="sheet-foot">
+    <p class="saved-note" role="status" aria-live="polite" hidden></p>
+    <button type="submit" name="again" value="1" class="btn">{{$t.SaveAnother}}</button>
+    <button type="submit" class="btn primary">{{$t.Save}}</button>
+  </footer>
+</form>
+<script type="application/json" id="add-data">{{.Data}}</script>
+</dialog>
+{{end}}{{end}}
